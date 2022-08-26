@@ -5,7 +5,7 @@ using UnityEngine;
 public class sc_SinglePlayerController : MonoBehaviour
 {
     [SerializeField] private sc_GameManager ManagerInstance = sc_GameManager.instance;
-
+    [SerializeField] private GameObject BorderTop, BorderBottom;
     [SerializeField] private float speed;
 
     private void Awake()
@@ -22,13 +22,14 @@ public class sc_SinglePlayerController : MonoBehaviour
         HandleInput();
     }
 
+    #region Input
     //Gets Input of Y axis (based on pong rules only up/down movement)
     private void HandleInput()
     {
         Vector2 moveVector = new Vector2(GetXInput(), GetYInput()); //Sets a movement vector for where it will update to
 
         Vector3 target = transform.position + (new Vector3(moveVector.x, moveVector.y, 0f)); //Sets the new target direction by updating transform target 
-        target.y = Mathf.Clamp(target.y, -ManagerInstance.WorldHeight + (transform.localScale.y / 2), ManagerInstance.WorldHeight - (transform.localScale.y / 2)); //Clamps y value between board height
+        target.y = Mathf.Clamp(target.y, BorderBottom.transform.position.y + (transform.localScale.y / 2), BorderTop.transform.position.y - (transform.localScale.y / 2)); //Clamps y value between board height
 
         transform.position = Vector3.MoveTowards(transform.position, target, speed * Time.deltaTime); //Updates actual transform
     }
@@ -44,4 +45,9 @@ public class sc_SinglePlayerController : MonoBehaviour
 
         return moveY;
     }
+    #endregion
+
+    #region Collision
+
+    #endregion
 }
