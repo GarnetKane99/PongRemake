@@ -397,6 +397,7 @@ GameObject:
   m_Component:
   - component: {fileID: 940489626}
   - component: {fileID: 940489627}
+  - component: {fileID: 940489628}
   m_Layer: 0
   m_Name: PlayerPrefab
   m_TagString: Untagged
@@ -471,6 +472,20 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
+--- !u!114 &940489628
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 940489625}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: eab8701c384a87543ab823484f174608, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  ManagerInstance: {fileID: 0}
+  speed: 2
 --- !u!1 &1469459978
 GameObject:
   m_ObjectHideFlags: 0
@@ -631,6 +646,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2041656921}
+  - component: {fileID: 2041656922}
   m_Layer: 0
   m_Name: Game Manager
   m_TagString: Untagged
@@ -653,3 +669,15 @@ Transform:
   m_Father: {fileID: 1663797190}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &2041656922
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2041656920}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1a314d40d7271ba46a461e79916b0233, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
