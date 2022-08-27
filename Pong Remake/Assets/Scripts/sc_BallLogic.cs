@@ -4,14 +4,36 @@ using UnityEngine;
 
 public class sc_BallLogic : MonoBehaviour
 {
+    [SerializeField] private sc_GameManager GameManager = sc_GameManager.instance;
+
     //Single Player Ball Logic
     [SerializeField] private GameObject Player, AI;
 
-    [SerializeField] private float BallSpeed;
+    [Header("Ball Properties")]
 
-    [SerializeField] private Vector3 OldPosition, NewPosition;
+    [SerializeField] private float CurrentBallSpeed;
+    [SerializeField] private float MaxBallSpeed;
+    [SerializeField] private float MinBallSpeed;
 
-    private bool CantHitPlayer = false;
+    [Header("Directional Properties")]
+
+    [SerializeField] private Vector3 OldPosition;
+    [SerializeField] private Vector3 NewPosition;
+    [SerializeField] private int TrueDirection;
+
+    [SerializeField] private Vector3 Velocity;
+
+    private void Awake()
+    {
+        if (GameManager == null)
+        {
+            GameManager = FindObjectOfType<sc_GameManager>();
+        }
+
+        MinBallSpeed = GameManager.MinBallSpeed;
+        MaxBallSpeed = GameManager.MaxBallSpeed;
+        CurrentBallSpeed = MinBallSpeed;
+    }
 
     // Start is called before the first frame update
     void Start()
@@ -23,16 +45,24 @@ public class sc_BallLogic : MonoBehaviour
     {
         OldPosition = NewPosition;
 
-        //NewPosition = Random.value > 0.5f ? Player.transform.position : AI.transform.position;
-        NewPosition = Player.transform.position;
+        //NewPosition = Random.value > 0.5f ? new Vector3(-GameManager.WorldWidth, Random.Range(-GameManager.WorldHeight, GameManager.WorldHeight)) :
+        //    new Vector3(GameManager.WorldWidth, Random.Range(-GameManager.WorldHeight, GameManager.WorldHeight));
+        // NewPosition = Player.transform.position;
+        //Velocity = (Player.transform.position - transform.position).normalized * MinBallSpeed;
+        //Velocity = Random.value > 0.5f ? new Vector3
+        Vector2 RandomDir = new Vector2(Random.Range(0.3f, 1.0f) * Random.value > 0.5f ? -1 : 1, Random.Range(-1.0f, 1.0f)).normalized * MinBallSpeed;
+        Velocity = RandomDir;
     }
 
     // Update is called once per frame
     void Update()
     {
-        if (transform.position != NewPosition)
+        transform.Translate(Velocity * Time.deltaTime);
+
+        if (Input.GetKeyDown(KeyCode.Space))
         {
-            transform.position = Vector3.MoveTowards(transform.position, NewPosition, BallSpeed * Time.deltaTime);
+            transform.position = new Vector3(0, 0, 0);
+            NewPosition = Player.transform.position;
         }
     }
 
@@ -40,68 +70,93 @@ public class sc_BallLogic : MonoBehaviour
     {
         if (collision != null)
         {
-            OldPosition = NewPosition;
+            //Velocity = NewPosition;
+            //Velocity = new Vector3(-Velocity.x, Velocity.y, 0);
 
-            if (collision.collider.tag == "Player")
+            bool HorizontalReflection = false;  //Walls
+            bool VerticalReflection = false;    //Player/Paddles
+
+            if (collision.collider.tag == "Player" || collision.collider.tag == "Enemy")
             {
-                if (!CantHitPlayer)
-                {
-                    switch (collision.gameObject.GetComponent<sc_PlayerCollider>().Position)
-                    {
+                VerticalReflection = true;
+            }
+            else if (collision.collider.tag == "Wall")
+            {
+                HorizontalReflection = true;
+            }
 
-                        case sc_PlayerCollider.SinglePlayerCollision.Top:
-                            // where the * 2 determines strength of direction
-                            NewPosition = OldPosition.y > 0 ? new Vector3(-OldPosition.x, OldPosition.y * (Random.Range(1, 20)), 0) : new Vector3(-OldPosition.x, -OldPosition.y * (Random.Range(1, 20)), 0);
+            if (VerticalReflection)
+            {
+                //Velocity = new Vector3(-Velocity.x, Velocity.y, 0);
+                float DirToGo = (transform.position.y - collision.transform.position.y) / (collision.transform.lossyScale.y / 2);
+                TrueDirection = DirToGo < 0 ? Mathf.RoundToInt(DirToGo - GameManager.PaddleOffset) : Mathf.RoundToInt(DirToGo + GameManager.PaddleOffset);
+                //Check if bounce is in positive velocity (ball going up)
+                if (Mathf.Sign(Velocity.y) > 0)
+                {
+                    float _theta = Mathf.Atan(-Velocity.y / Velocity.x);
+
+                    float _vMaxY = -Velocity.x * Mathf.Sin(_theta) + Velocity.y * Mathf.Cos(_theta);
+
+                    float randY = Random.Range(Velocity.y, _vMaxY);
+
+                    if (_vMaxY < Velocity.y)
+                    {
+                        Debug.Log("Fuck");
+                    }
+
+                    switch (TrueDirection)
+                    {
+                        case 0:
+                            Velocity = new Vector3(-Velocity.x, Random.Range(Velocity.y - 0.2f, Velocity.y + 0.2f), 0);
                             break;
-                        case sc_PlayerCollider.SinglePlayerCollision.Middle:
-                            NewPosition = new Vector3(-OldPosition.x, OldPosition.y, 0);
+
+                        case 1:
+                            Velocity = randY > 0 ? new Vector2(-Velocity.x, randY) : new Vector2(-Velocity.x, -randY);
+                            CurrentBallSpeed++;
                             break;
-                        case sc_PlayerCollider.SinglePlayerCollision.Bottom:
-                            // where the * 2 determines strength of direction
-                            NewPosition = OldPosition.y > 0 ? new Vector3(-OldPosition.x, OldPosition.y * (Random.Range(-1, -20)), 0) : new Vector3(-OldPosition.x, -OldPosition.y * (Random.Range(-1, -20)), 0);
+                        case -1:
+                            Velocity = randY > 0 ? new Vector2(-Velocity.x, -randY) : new Vector2(-Velocity.x, randY);
+                            CurrentBallSpeed++;
                             break;
                     }
-                    CantHitPlayer = true;
-                    Invoke("ResetHit", 0.5f);
                 }
-            }
-            else if (collision.collider.tag == "Enemy")
-            {
-                if (!CantHitPlayer)
+                //Check if bounce is in negative velocity (ball going down)
+                else if (Mathf.Sign(Velocity.y) < 0)
                 {
-                    switch (collision.gameObject.GetComponent<sc_PlayerCollider>().Position)
-                    {
+                    float _theta = 2 * Mathf.PI - Mathf.Atan(-Velocity.y / Velocity.x);
 
-                        case sc_PlayerCollider.SinglePlayerCollision.Top:
-                            // where the * 2 determines strength of direction
-                            NewPosition = OldPosition.y > 0 ? new Vector3(-OldPosition.x, OldPosition.y * (Random.Range(1, 20)), 0) : new Vector3(-OldPosition.x, -OldPosition.y * (Random.Range(1, 20)), 0);
+                    float _vMaxY = -Velocity.x * Mathf.Sin(_theta) + Velocity.y * Mathf.Cos(_theta);
+
+                    float randY = Random.Range(Velocity.y, _vMaxY);
+
+                    if (_vMaxY < Velocity.y)
+                    {
+                        Debug.Log("Fuck");
+                    }
+
+                    switch (TrueDirection)
+                    {
+                        case 0:
+                            Velocity = new Vector3(-Velocity.x, Random.Range(Velocity.y - 0.2f, Velocity.y + 0.2f), 0);
                             break;
-                        case sc_PlayerCollider.SinglePlayerCollision.Middle:
-                            NewPosition = new Vector3(-OldPosition.x, OldPosition.y, 0);
+
+                        case 1:
+                            Velocity = randY > 0 ? new Vector2(-Velocity.x, randY) : new Vector2(-Velocity.x, -randY);
+                            CurrentBallSpeed++;
                             break;
-                        case sc_PlayerCollider.SinglePlayerCollision.Bottom:
-                            // where the * 2 determines strength of direction
-                            NewPosition = OldPosition.y > 0 ? new Vector3(-OldPosition.x, OldPosition.y * (Random.Range(-1, -20)), 0) : new Vector3(-OldPosition.x, -OldPosition.y * (Random.Range(-1, -20)), 0);
+                        case -1:
+                            Velocity = randY > 0 ? new Vector2(-Velocity.x, -randY) : new Vector2(-Velocity.x, randY);
+                            CurrentBallSpeed++;
                             break;
                     }
-                    CantHitPlayer = true;
-                    Invoke("ResetHit", 0.5f);
                 }
             }
-            else
+            if (HorizontalReflection)
             {
-                //if (!CantHitPlayer)
-                //{
-                    NewPosition = -OldPosition.y > 0 ? new Vector3(NewPosition.x, Random.Range(-OldPosition.y / 6, 0), 0) :
-                        new Vector3(NewPosition.x, Random.Range(-OldPosition.y / 6, 0), 0);
-                   // Invoke("ResetHit", 0.5f);
-                //}
+                Velocity = new Vector3(Velocity.x, -Velocity.y, 0);
             }
+
+            CurrentBallSpeed = Mathf.Clamp(CurrentBallSpeed, MinBallSpeed, MaxBallSpeed);
         }
-    }
-
-    private void ResetHit()
-    {
-        CantHitPlayer = false;
     }
 }
