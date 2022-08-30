@@ -35,7 +35,7 @@ public class sc_AIController : MonoBehaviour
     #region Ball Prediction Calculation
     void PredictPath(sc_BallLogic Ball)
     {
-        Vector2 PredictedPosition = new Vector2(transform.position.x, Ball.Velocity.y * 14 + Ball.transform.position.y);    //predicted position is where the ball will end up based on the velocity calculation
+        Vector2 PredictedPosition = new Vector2(transform.position.x, Ball.Velocity.y * Random.Range(13.5f, 14.5f) + Ball.transform.position.y);    //predicted position is where the ball will end up based on the velocity calculation
         //time formula
         Instantiate(Debugger, PredictedPosition, Quaternion.identity);
         float TimeToDistance = (Vector2.Distance(Ball.transform.position, PredictedPosition)) / Ball.CurrentBallSpeed;  //this equates to the AI knowing how long it has to reach target destination
@@ -50,6 +50,8 @@ public class sc_AIController : MonoBehaviour
         {
             velocity.y = PaddleToPosition / TimeToDistance;
         }
+
+        velocity.y = Mathf.Clamp(velocity.y, -2.0f, 2.0f);
 
         TargetPosition = PredictedPosition;
     }
@@ -74,6 +76,10 @@ public class sc_AIController : MonoBehaviour
             velocity.y = PaddleToPosition / TimeToDistance;
         }
 
+        velocity.y /= PredictedPosition.y > ManagerInstance.WorldHeight - 0.75f ? 2 : PredictedPosition.y < -ManagerInstance.WorldHeight + 0.75f ? 2 : 1;
+
+        velocity.y = Mathf.Clamp(velocity.y, -2.0f, 2.0f);
+
         TargetPosition = PredictedPosition;
     }
 
@@ -96,7 +102,7 @@ public class sc_AIController : MonoBehaviour
 
         if (Vector2.Distance(transform.position, TargetPosition) <= 0.1f)
         {
-            velocity.y = 0;
+            velocity.y = velocity.y / 2;
         }
     }
 }

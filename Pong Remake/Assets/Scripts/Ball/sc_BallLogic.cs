@@ -67,7 +67,7 @@ public class sc_BallLogic : MonoBehaviour
         BotWall = false;
         TopWall = false;
         float randVal = Random.value;
-        Vector2 RandomDir = new Vector2(Random.Range(0.3f, 1.0f) * randVal >= 0.5f ? -1 : 1, Random.Range(-1.0f, 1.0f)).normalized;
+        Vector2 RandomDir = new Vector2(Random.Range(0.3f, 1.0f) * randVal >= 0.5f ? -1 : 1, Random.Range(-0.5f, 0.5f)).normalized;
         Velocity = RandomDir;
         if (Velocity.x > 0)
         {
@@ -82,9 +82,9 @@ public class sc_BallLogic : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        UpdateVelocity();
         if (!GameResetting)
         {
-            UpdateVelocity();
 
             DetectCollisions();
 
@@ -147,7 +147,7 @@ public class sc_BallLogic : MonoBehaviour
     //Method to check wall collision
     private bool VerticalWallCollision()
     {
-        if (transform.position.y >= ManagerInstance.WorldHeight - 0.3125f || transform.position.y <= -ManagerInstance.WorldHeight + 0.3125f)    //Check if ball is >= or <= the screen limits (taking into account the border object)
+        if (transform.position.y >= ManagerInstance.WorldHeight - 0.3130f || transform.position.y <= -ManagerInstance.WorldHeight + 0.3130f)    //Check if ball is >= or <= the screen limits (taking into account the border object)
         {
             if (Mathf.Sign(Velocity.y) <= 0) //check if ball is going down
             {
@@ -172,25 +172,25 @@ public class sc_BallLogic : MonoBehaviour
     }
     private void HorizontalWallCollision()
     {
-        if (transform.position.x >= ManagerInstance.WorldWidth)
+        if (transform.position.x >= ManagerInstance.WorldWidth - 1.75f)
         {
             ManagerInstance.P1Score++;
             if (ScoreIncrease != null)
             {
                 ScoreIncrease(ManagerInstance.P1ID);
-                Invoke("InitialMovement", 2.0f);
-                Velocity = new Vector3(0, 0, 0);
+                Invoke("InitialMovement", 3.0f);
+                //Velocity = new Vector3(0, 0, 0);
                 GameResetting = true;
             }
         }
-        else if (transform.position.x <= -ManagerInstance.WorldWidth)
+        else if (transform.position.x <= -ManagerInstance.WorldWidth + 1.75f)
         {
             ManagerInstance.P2Score++;
             if (ScoreIncrease != null)
             {
                 ScoreIncrease(ManagerInstance.P2ID);
-                Invoke("InitialMovement", 2.0f);
-                Velocity = new Vector3(0, 0, 0);
+                Invoke("InitialMovement", 3.0f);
+                //Velocity = new Vector3(0, 0, 0);
                 GameResetting = true;
             }
         }
