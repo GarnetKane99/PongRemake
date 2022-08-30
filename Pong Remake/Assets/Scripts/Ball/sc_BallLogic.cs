@@ -12,57 +12,83 @@ public class sc_BallLogic : MonoBehaviour
         BOTTOM
     }
 
-    [SerializeField] private sc_GameManager GameManager = sc_GameManager.instance;
+    [SerializeField] private sc_GameManager ManagerInstance = sc_GameManager.instance;
 
     //Single Player Ball Logic
     [SerializeField] private GameObject Player, AI;
 
+    [SerializeField] private int HitCount;
+
     [Header("Ball Properties")]
 
-    [SerializeField] private float CurrentBallSpeed;
+    private float StartingBallSpeed;
+    public float CurrentBallSpeed;
     [SerializeField] private float MaxBallSpeed;
     [SerializeField] private float MinBallSpeed;
 
     [Header("Directional Properties")]
 
-    [SerializeField] private Vector3 Velocity;
+    public Vector3 Velocity;
     [SerializeField] private PaddlePosition PaddleHitPosition;
+
+    [SerializeField] private bool BotWall = false;
+    [SerializeField] private bool TopWall = false;
+
+    public delegate void OnBallHit(sc_BallLogic Ball);
+    public static event OnBallHit BallHit;
+    public delegate void OnWallHit(sc_BallLogic Ball);
+    public static event OnWallHit WallHit;
+
+    public delegate void OnScoreIncrease(int PlayerID);
+    public static event OnScoreIncrease ScoreIncrease;
+
+    private bool GameResetting = false;
 
     private void Awake()
     {
-        if (GameManager == null)
+        if (ManagerInstance == null)
         {
-            GameManager = FindObjectOfType<sc_GameManager>();
+            ManagerInstance = FindObjectOfType<sc_GameManager>();
         }
 
-        MinBallSpeed = GameManager.MinBallSpeed;
-        MaxBallSpeed = GameManager.MaxBallSpeed;
+        MinBallSpeed = ManagerInstance.MinBallSpeed;
+        MaxBallSpeed = ManagerInstance.MaxBallSpeed;
         CurrentBallSpeed = MinBallSpeed;
-    }
-
-    // Start is called before the first frame update
-    void Start()
-    {
+        StartingBallSpeed = CurrentBallSpeed;
         Invoke("InitialMovement", 3.0f);
     }
 
+    //Randomises velocity direction for ball to go towards
     private void InitialMovement()
     {
-        Vector2 RandomDir = new Vector2(Random.Range(0.3f, 1.0f) * Random.value > 0.5f ? -1 : 1, Random.Range(-1.0f, 1.0f)).normalized;
+        CurrentBallSpeed = StartingBallSpeed;
+        MinBallSpeed = CurrentBallSpeed;
+        transform.position = new Vector3(0, 0, 0);
+        BotWall = false;
+        TopWall = false;
+        float randVal = Random.value;
+        Vector2 RandomDir = new Vector2(Random.Range(0.3f, 1.0f) * randVal >= 0.5f ? -1 : 1, Random.Range(-1.0f, 1.0f)).normalized;
         Velocity = RandomDir;
+        if (Velocity.x > 0)
+        {
+            if (WallHit != null)
+            {
+                WallHit(this);
+            }
+        }
+        GameResetting = false;
     }
 
     // Update is called once per frame
     void Update()
     {
-        UpdateVelocity();
-
-        //Debugging
-        DisplayDistance();
-
-        if (Input.GetKeyDown(KeyCode.Space))
+        if (!GameResetting)
         {
-            transform.position = new Vector3(0, 0, 0);
+            UpdateVelocity();
+
+            DetectCollisions();
+
+            DisplayDistance();
         }
     }
 
@@ -71,87 +97,190 @@ public class sc_BallLogic : MonoBehaviour
         transform.Translate(Velocity * CurrentBallSpeed * Time.deltaTime);
     }
 
+    /// <summary>
+    /// Function to detect collision based off of transforms
+    /// </summary>
+    private void DetectCollisions()
+    {
+        if (VerticalWallCollision()) //Method to check if ball collides with a wall
+        {
+            VerticalReflection(); //function to call that will allow a vertical reflection
+        }
+
+        HorizontalWallCollision();
+
+        if (Velocity.x <= 0)    //check if ball velocity is less than 0 (i.e. going left) *set <= so that instance of 0 is accounted =shouldn't ever occur=
+        {
+            if (transform.position.x <= (Player.transform.position.x + (Player.transform.lossyScale.x / 8)))    //check if ball current position is <= to player's position while taking into account the width of the paddle
+            {
+                BotWall = false;    //reset wall checks
+                TopWall = false;
+                if (Vector2.Distance(transform.position, Player.transform.position) < Player.transform.lossyScale.y / 2)    //check if distance between ball and paddle is less than the total height of the paddle (ensure paddle is in contact)
+                {
+                    HorizontalReflection(Player);   //Call Horizontal Reflection with reference to player
+                }
+                else
+                {
+                    //Invoke Game Over Condition
+                }
+            }
+        }
+        else if (Velocity.x > 0)    //check if ball velocity is more than 0 (i.e. going right)
+        {
+            if (transform.position.x >= (AI.transform.position.x - (AI.transform.lossyScale.x / 8)))    //check if ball current position is >= to ai's position while taking into account the width of the paddle
+            {
+                BotWall = false;    //reset wall checks
+                TopWall = false;
+
+                if (Vector2.Distance(transform.position, AI.transform.position) < AI.transform.lossyScale.y / 2) //check if distance between ball and paddle is less than the total height of the paddle (ensure paddle is in contact)
+                {
+                    HorizontalReflection(AI);   //call Horizontal Reflection with reference to ai
+                }
+                else
+                {
+                    //Invoke Game Over Condition
+                }
+            }
+        }
+    }
+
+    //Method to check wall collision
+    private bool VerticalWallCollision()
+    {
+        if (transform.position.y >= ManagerInstance.WorldHeight - 0.3125f || transform.position.y <= -ManagerInstance.WorldHeight + 0.3125f)    //Check if ball is >= or <= the screen limits (taking into account the border object)
+        {
+            if (Mathf.Sign(Velocity.y) <= 0) //check if ball is going down
+            {
+                if (!BotWall)   //ensure it doesn't try to collide with the bottom screen twice
+                {
+                    BotWall = true; //set bot wall check to true so that it doesn't return twice
+                    TopWall = false;
+                    return true;
+                }
+            }
+            else if (Mathf.Sign(Velocity.y) > 0)    //check if ball is going up
+            {
+                if (!TopWall)   //ensure it doesn't try to collider with the top screen twice
+                {
+                    TopWall = true;
+                    BotWall = false;
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+    private void HorizontalWallCollision()
+    {
+        if (transform.position.x >= ManagerInstance.WorldWidth)
+        {
+            ManagerInstance.P1Score++;
+            if (ScoreIncrease != null)
+            {
+                ScoreIncrease(ManagerInstance.P1ID);
+                Invoke("InitialMovement", 2.0f);
+                Velocity = new Vector3(0, 0, 0);
+                GameResetting = true;
+            }
+        }
+        else if (transform.position.x <= -ManagerInstance.WorldWidth)
+        {
+            ManagerInstance.P2Score++;
+            if (ScoreIncrease != null)
+            {
+                ScoreIncrease(ManagerInstance.P2ID);
+                Invoke("InitialMovement", 2.0f);
+                Velocity = new Vector3(0, 0, 0);
+                GameResetting = true;
+            }
+        }
+    }
+
+    //method with algorithm to deflect horizontally with some randomisation -> takes reference of which object it is deflecting
+    private void HorizontalReflection(GameObject CollisionObject)
+    {
+        float DirToGo = (transform.position.y - CollisionObject.transform.position.y) / (CollisionObject.transform.lossyScale.y / 2);
+        DirToGo = DirToGo < 0 ? Mathf.RoundToInt(DirToGo - ManagerInstance.PaddleOffset) : Mathf.RoundToInt(DirToGo + ManagerInstance.PaddleOffset);    //Used to check which part of the paddle is being hit
+        PaddleHitPosition = DirToGo == -1 ? PaddlePosition.BOTTOM : DirToGo == 1 ? PaddlePosition.TOP : PaddlePosition.MIDDLE;  //PaddleHitPosition is updated based on float position (-1 = bot. of pad, 0 = mid. of pad, +1 = top of pad) 
+
+        float _vMaxY = -Velocity.x * Mathf.Sin(Mathf.PI / 4) + Velocity.y * Mathf.Cos(Mathf.PI / 4);    //max direction that y can go
+
+        float randY = Random.Range(Velocity.y, _vMaxY); //random direction that ball can travel towards
+
+        switch (PaddleHitPosition)  //various cases depending on where on the paddle ball has hit
+        {
+            case PaddlePosition.MIDDLE:
+                if (Mathf.Sign(Velocity.y) >= 0)    //Check if bounce is in positive velocity (ball going up)
+                {
+                    Velocity = new Vector3(-Velocity.x, Random.Range(0, 0.1f), 0);  //if middle, then return velocity will be similar to initial hit
+                }
+                else if (Mathf.Sign(Velocity.y) < 0) //Check if bounce is in negative velocity (ball going down)
+                {
+                    Velocity = new Vector3(-Velocity.x, Random.Range(-0.1f, 0), 0);
+                }
+                break;
+
+            case PaddlePosition.TOP:
+                Velocity = randY > 0 ? new Vector2(-Velocity.x, randY) : new Vector2(-Velocity.x, -randY);  //if top, also check if the randY velocity is > 0 -> this is so we know if we need to continue in the upwards velocity, or swap to negative velocity
+                CurrentBallSpeed++; //increase ball speed on top and bottom paddle hits
+                break;
+
+            case PaddlePosition.BOTTOM:
+                Velocity = randY > 0 ? new Vector2(-Velocity.x, -randY) : new Vector2(-Velocity.x, randY);  //if bot, also check if the randY velocity is > 0 -> this is so we know if we need to swap to negative velocity or continue in the upwards velocity
+                CurrentBallSpeed++;
+                break;
+        }
+
+        if (CollisionObject == Player)
+        {
+            if (BallHit != null)
+            {
+                BallHit(this);
+            }
+        }
+
+        UpdateHitCount();
+    }
+    //hitcount is used to track the number of times the ball hits the paddle - this is so that the game does progressively get more difficult
+    private void UpdateHitCount()
+    {
+        HitCount++;
+        if (HitCount % 8 == 0)
+        {
+            MinBallSpeed++;
+            if (MinBallSpeed > MaxBallSpeed)
+            {
+                MaxBallSpeed = MinBallSpeed;
+            }
+        }
+        CurrentBallSpeed = Mathf.Clamp(CurrentBallSpeed, MinBallSpeed, MaxBallSpeed);
+    }
+
+    //vertical reflection mirrors the current y velocity in the opposite direction
+    private void VerticalReflection()
+    {
+        Velocity = new Vector3(Velocity.x, -Velocity.y, 0);
+
+        if (Random.value < 0.5f) //chance to slow the balls speed down when this occurs as well
+        {
+            CurrentBallSpeed--;
+            CurrentBallSpeed = Mathf.Clamp(CurrentBallSpeed, MinBallSpeed, MaxBallSpeed);
+        }
+
+        if (Velocity.x > 0)
+        {
+            if (WallHit != null)
+            {
+                WallHit(this);
+            }
+        }
+    }
+
+    //Debugging
     private void DisplayDistance()
     {
         Debug.DrawLine(transform.position, Player.transform.position, Color.red);
         Debug.DrawLine(transform.position, AI.transform.position, Color.red);
         Debug.DrawRay(transform.position, new Vector3(Velocity.x * 10, Velocity.y * 10, 0), Color.blue);
-    }
-
-    private void OnCollisionEnter2D(Collision2D collision)
-    {
-        if (collision != null)
-        {
-            bool HorizontalReflection = false;  //Walls
-            bool VerticalReflection = false;    //Player/Paddles
-
-            if (collision.collider.tag == "Player" || collision.collider.tag == "Enemy")
-            {
-                VerticalReflection = true;
-            }
-            else if (collision.collider.tag == "Wall")
-            {
-                HorizontalReflection = true;
-            }
-
-            if (VerticalReflection)
-            {
-                //Velocity = new Vector3(-Velocity.x, Velocity.y, 0);
-                float DirToGo = (transform.position.y - collision.transform.position.y) / (collision.transform.lossyScale.y / 2);
-                DirToGo = DirToGo < 0 ? Mathf.RoundToInt(DirToGo - GameManager.PaddleOffset) : Mathf.RoundToInt(DirToGo + GameManager.PaddleOffset);
-                PaddleHitPosition = DirToGo == -1 ? PaddlePosition.BOTTOM : DirToGo == 1 ? PaddlePosition.TOP : PaddlePosition.MIDDLE;
-                //Check if bounce is in positive velocity (ball going up)
-                if (Mathf.Sign(Velocity.y) > 0)
-                {
-                    float _vMaxY = -Velocity.x * Mathf.Sin(Mathf.PI/4) + Velocity.y * Mathf.Cos(Mathf.PI / 4);
-
-                    float randY = Random.Range(Velocity.y, _vMaxY);
-
-                    switch (PaddleHitPosition)
-                    {
-                        case PaddlePosition.MIDDLE:
-                            Velocity = new Vector3(-Velocity.x, Random.Range(0, 0.1f), 0);
-                            break;
-                        case PaddlePosition.TOP:
-                            Velocity = randY > 0 ? new Vector2(-Velocity.x, randY) : new Vector2(-Velocity.x, -randY);
-                            CurrentBallSpeed++;
-                            break;
-                        case PaddlePosition.BOTTOM:
-                            Velocity = randY > 0 ? new Vector2(-Velocity.x, -randY) : new Vector2(-Velocity.x, randY);
-                            CurrentBallSpeed++;
-                            break;
-                    }
-                }
-                //Check if bounce is in negative velocity (ball going down)
-                else if (Mathf.Sign(Velocity.y) < 0)
-                {
-                    float _vMaxY = -Velocity.x * Mathf.Sin(Mathf.PI / 4) + Velocity.y * Mathf.Cos(Mathf.PI / 4);
-
-                    float randY = Random.Range(Velocity.y, _vMaxY);
-
-                    switch (PaddleHitPosition)
-                    {
-                        case PaddlePosition.MIDDLE:
-                            Velocity = new Vector3(-Velocity.x, Random.Range(-0.1f, 0), 0);
-                            break;
-
-                        case PaddlePosition.TOP:
-                            Velocity = randY > 0 ? new Vector2(-Velocity.x, randY) : new Vector2(-Velocity.x, -randY);
-                            CurrentBallSpeed++;
-                            break;
-                        case PaddlePosition.BOTTOM:
-                            Velocity = randY > 0 ? new Vector2(-Velocity.x, -randY) : new Vector2(-Velocity.x, randY);
-                            CurrentBallSpeed++;
-                            break;
-                    }
-                }
-            }
-            if (HorizontalReflection)
-            {
-                Velocity = new Vector3(Velocity.x, -Velocity.y, 0);
-            }
-
-            CurrentBallSpeed = Mathf.Clamp(CurrentBallSpeed, MinBallSpeed, MaxBallSpeed);
-        }
     }
 }

@@ -29,8 +29,8 @@ public class sc_SinglePlayerController : MonoBehaviour
         Vector2 moveVector = new Vector2(GetXInput(), GetYInput()); //Sets a movement vector for where it will update to
 
         Vector3 target = transform.position + (new Vector3(moveVector.x, moveVector.y, 0f)); //Sets the new target direction by updating transform target 
-        target.y = Mathf.Clamp(target.y, BorderBottom.transform.position.y + (transform.localScale.y / 2), BorderTop.transform.position.y - (transform.localScale.y / 2)); //Clamps y value between board height
-
+        //4.25 //- 4.25
+        target.y = Mathf.Clamp(target.y, -ManagerInstance.WorldHeight + (transform.lossyScale.y/2) + 0.25f, ManagerInstance.WorldHeight - (transform.lossyScale.y/2) - 0.25f);
         transform.position = Vector3.MoveTowards(transform.position, target, speed * Time.deltaTime); //Updates actual transform
     }
 
@@ -45,9 +45,5 @@ public class sc_SinglePlayerController : MonoBehaviour
 
         return moveY;
     }
-    #endregion
-
-    #region Collision
-
     #endregion
 }

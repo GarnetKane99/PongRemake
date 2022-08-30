@@ -17,6 +17,9 @@ public class sc_GameManager : MonoBehaviour
 
     public float MaxBallSpeed, MinBallSpeed;
 
+    public int P1Score = default, P2Score = default;
+    public int P1ID = default, P2ID = default;
+
     // Start is called before the first frame update
     void Awake()
     {
