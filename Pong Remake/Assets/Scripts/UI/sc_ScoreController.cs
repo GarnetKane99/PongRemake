@@ -9,6 +9,7 @@ public class sc_ScoreController : MonoBehaviour
     private int PlayerID;
 
     [SerializeField] sc_GameManager ManagerInstance = sc_GameManager.instance;
+    [SerializeField] sc_TextShake TextShake;
 
     private void Awake()
     {
@@ -17,7 +18,6 @@ public class sc_ScoreController : MonoBehaviour
             ManagerInstance = FindObjectOfType<sc_GameManager>();
         }
         InitializeScores();
-        sc_BallLogic.ScoreIncrease += UpdateScore;
     }
 
     private void InitializeScores()
@@ -26,7 +26,7 @@ public class sc_ScoreController : MonoBehaviour
         Player2.text = ManagerInstance.P2Score.ToString();
     }
 
-    void UpdateScore(int ID)
+    public void UpdateScore(int ID)
     {
         PlayerID = ID;
         if (PlayerID == ManagerInstance.P1ID)
@@ -37,5 +37,7 @@ public class sc_ScoreController : MonoBehaviour
         {
             Player2.text = ManagerInstance.P2Score.ToString();
         }
+        TextShake.StartCoroutine(TextShake.TextShaker(PlayerID));
+        //TextShake.InvokeRepeating("StartColourFlash", 0, 0.2f);
     }
 }

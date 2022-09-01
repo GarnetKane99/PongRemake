@@ -42,7 +42,7 @@ public class sc_BallLogic : MonoBehaviour
     public delegate void OnScoreIncrease(int PlayerID);
     public static event OnScoreIncrease ScoreIncrease;
 
-    private bool GameResetting = false;
+    //private bool GameResetting = false;
 
     private void Awake()
     {
@@ -51,6 +51,7 @@ public class sc_BallLogic : MonoBehaviour
             ManagerInstance = FindObjectOfType<sc_GameManager>();
         }
 
+        ManagerInstance.SetupDelegate();
         MinBallSpeed = ManagerInstance.MinBallSpeed;
         MaxBallSpeed = ManagerInstance.MaxBallSpeed;
         CurrentBallSpeed = MinBallSpeed;
@@ -76,16 +77,15 @@ public class sc_BallLogic : MonoBehaviour
                 WallHit(this);
             }
         }
-        GameResetting = false;
+        ManagerInstance.GameReset = false;
     }
 
     // Update is called once per frame
     void Update()
     {
         UpdateVelocity();
-        if (!GameResetting)
+        if (!ManagerInstance.GameReset)
         {
-
             DetectCollisions();
 
             DisplayDistance();
@@ -107,8 +107,6 @@ public class sc_BallLogic : MonoBehaviour
             VerticalReflection(); //function to call that will allow a vertical reflection
         }
 
-        HorizontalWallCollision();
-
         if (Velocity.x <= 0)    //check if ball velocity is less than 0 (i.e. going left) *set <= so that instance of 0 is accounted =shouldn't ever occur=
         {
             if (transform.position.x <= (Player.transform.position.x + (Player.transform.lossyScale.x / 8)))    //check if ball current position is <= to player's position while taking into account the width of the paddle
@@ -121,7 +119,11 @@ public class sc_BallLogic : MonoBehaviour
                 }
                 else
                 {
-                    //Invoke Game Over Condition
+                    if (transform.position.x < Player.transform.position.x - 0.25f)
+                    {
+                        ResetGame(1);
+                        Invoke("InitialMovement", 3.0f);
+                    }
                 }
             }
         }
@@ -138,7 +140,11 @@ public class sc_BallLogic : MonoBehaviour
                 }
                 else
                 {
-                    //Invoke Game Over Condition
+                    if (transform.position.x > AI.transform.position.x + 0.25f)
+                    {
+                        ResetGame(0);
+                        Invoke("InitialMovement", 3.0f);
+                    }
                 }
             }
         }
@@ -170,29 +176,12 @@ public class sc_BallLogic : MonoBehaviour
         }
         return false;
     }
-    private void HorizontalWallCollision()
+
+    private void ResetGame(int playerID)
     {
-        if (transform.position.x >= ManagerInstance.WorldWidth - 1.75f)
+        if (ScoreIncrease != null)
         {
-            ManagerInstance.P1Score++;
-            if (ScoreIncrease != null)
-            {
-                ScoreIncrease(ManagerInstance.P1ID);
-                Invoke("InitialMovement", 3.0f);
-                //Velocity = new Vector3(0, 0, 0);
-                GameResetting = true;
-            }
-        }
-        else if (transform.position.x <= -ManagerInstance.WorldWidth + 1.75f)
-        {
-            ManagerInstance.P2Score++;
-            if (ScoreIncrease != null)
-            {
-                ScoreIncrease(ManagerInstance.P2ID);
-                Invoke("InitialMovement", 3.0f);
-                //Velocity = new Vector3(0, 0, 0);
-                GameResetting = true;
-            }
+            ScoreIncrease(playerID);
         }
     }
 

@@ -17,18 +17,43 @@ public class sc_GameManager : MonoBehaviour
 
     public float MaxBallSpeed, MinBallSpeed;
 
+    public bool GameReset = false;
+
     public int P1Score = default, P2Score = default;
     public int P1ID = default, P2ID = default;
+
+    public bool SinglePlayerMode = false;
+
+    public delegate void ScoreIncreaser(int playerID);
+    public static event ScoreIncreaser ScoreToIncrease;
+
+    public sc_ScoreController ScoreHandler;
+    public sc_AIController AIController;
+    public sc_SinglePlayerController SinglePlayerController;
 
     // Start is called before the first frame update
     void Awake()
     {
         mainCamera = Camera.main;
+        SinglePlayerMode = true;
     }
 
-    // Update is called once per frame
-    void Update()
+    public void SetupDelegate()
     {
-        
+        sc_BallLogic.ScoreIncrease += IncreaseScore;
+    }
+
+    public void IncreaseScore(int PlayerID)
+    {
+        GameReset = true;
+        if (PlayerID == P1ID)
+        {
+            P1Score++;
+        }
+        else if (PlayerID == P2ID)
+        {
+            P2Score++;
+        }
+        ScoreHandler.UpdateScore(PlayerID);
     }
 }

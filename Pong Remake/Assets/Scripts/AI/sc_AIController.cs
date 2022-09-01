@@ -28,16 +28,24 @@ public class sc_AIController : MonoBehaviour
 
     void Update()
     {
-        CheckPosition();
-        transform.Translate(velocity * PaddleSpeed * Time.deltaTime);
+        if (!ManagerInstance.GameReset)
+        {
+
+            CheckPosition();
+            transform.Translate(velocity * PaddleSpeed * Time.deltaTime);
+        }
+        else
+        {
+            transform.position = Vector2.MoveTowards(transform.position, new Vector2(transform.position.x, 0), 3.0f * Time.deltaTime);
+        }
     }
 
     #region Ball Prediction Calculation
     void PredictPath(sc_BallLogic Ball)
     {
         Vector2 PredictedPosition = new Vector2(transform.position.x, Ball.Velocity.y * Random.Range(13.5f, 14.5f) + Ball.transform.position.y);    //predicted position is where the ball will end up based on the velocity calculation
-        //time formula
         Instantiate(Debugger, PredictedPosition, Quaternion.identity);
+        //time formula
         float TimeToDistance = (Vector2.Distance(Ball.transform.position, PredictedPosition)) / Ball.CurrentBallSpeed;  //this equates to the AI knowing how long it has to reach target destination
 
         float PaddleToPosition = (Vector2.Distance(transform.position, PredictedPosition)) / PaddleSpeed;

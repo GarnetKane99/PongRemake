@@ -5,7 +5,6 @@ using UnityEngine;
 public class sc_SinglePlayerController : MonoBehaviour
 {
     [SerializeField] private sc_GameManager ManagerInstance = sc_GameManager.instance;
-    [SerializeField] private GameObject BorderTop, BorderBottom;
     [SerializeField] private float speed;
 
     private void Awake()
@@ -19,7 +18,14 @@ public class sc_SinglePlayerController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        HandleInput();
+        if (!ManagerInstance.GameReset)
+        {
+            HandleInput();
+        }
+        else
+        {
+            transform.position = Vector3.MoveTowards(transform.position, new Vector3(transform.position.x, 0), 3.0f * Time.deltaTime);
+        }
     }
 
     #region Input
