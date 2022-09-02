@@ -38,6 +38,5 @@ public class sc_ScoreController : MonoBehaviour
             Player2.text = ManagerInstance.P2Score.ToString();
         }
         TextShake.StartCoroutine(TextShake.TextShaker(PlayerID));
-        //TextShake.InvokeRepeating("StartColourFlash", 0, 0.2f);
     }
 }

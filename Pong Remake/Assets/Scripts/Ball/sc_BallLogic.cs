@@ -2,7 +2,6 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-
 public class sc_BallLogic : MonoBehaviour
 {
     private enum PaddlePosition
@@ -15,7 +14,7 @@ public class sc_BallLogic : MonoBehaviour
     [SerializeField] private sc_GameManager ManagerInstance = sc_GameManager.instance;
 
     //Single Player Ball Logic
-    [SerializeField] private GameObject Player, AI;
+    [SerializeField] private GameObject PlayerOne, PlayerTwo;
 
     [SerializeField] private int HitCount;
 
@@ -42,8 +41,6 @@ public class sc_BallLogic : MonoBehaviour
     public delegate void OnScoreIncrease(int PlayerID);
     public static event OnScoreIncrease ScoreIncrease;
 
-    //private bool GameResetting = false;
-
     private void Awake()
     {
         if (ManagerInstance == null)
@@ -56,7 +53,6 @@ public class sc_BallLogic : MonoBehaviour
         MaxBallSpeed = ManagerInstance.MaxBallSpeed;
         CurrentBallSpeed = MinBallSpeed;
         StartingBallSpeed = CurrentBallSpeed;
-        Invoke("InitialMovement", 3.0f);
     }
 
     //Randomises velocity direction for ball to go towards
@@ -109,17 +105,17 @@ public class sc_BallLogic : MonoBehaviour
 
         if (Velocity.x <= 0)    //check if ball velocity is less than 0 (i.e. going left) *set <= so that instance of 0 is accounted =shouldn't ever occur=
         {
-            if (transform.position.x <= (Player.transform.position.x + (Player.transform.lossyScale.x / 8)))    //check if ball current position is <= to player's position while taking into account the width of the paddle
+            if (transform.position.x <= (PlayerOne.transform.position.x + (PlayerOne.transform.lossyScale.x / 8)))    //check if ball current position is <= to player's position while taking into account the width of the paddle
             {
                 BotWall = false;    //reset wall checks
                 TopWall = false;
-                if (Vector2.Distance(transform.position, Player.transform.position) < Player.transform.lossyScale.y / 2)    //check if distance between ball and paddle is less than the total height of the paddle (ensure paddle is in contact)
+                if (Vector2.Distance(transform.position, PlayerOne.transform.position) < PlayerOne.transform.lossyScale.y / 2)    //check if distance between ball and paddle is less than the total height of the paddle (ensure paddle is in contact)
                 {
-                    HorizontalReflection(Player);   //Call Horizontal Reflection with reference to player
+                    HorizontalReflection(PlayerOne);   //Call Horizontal Reflection with reference to player
                 }
                 else
                 {
-                    if (transform.position.x < Player.transform.position.x - 0.25f)
+                    if (transform.position.x < PlayerOne.transform.position.x - 0.25f)
                     {
                         ResetGame(1);
                         Invoke("InitialMovement", 3.0f);
@@ -129,18 +125,18 @@ public class sc_BallLogic : MonoBehaviour
         }
         else if (Velocity.x > 0)    //check if ball velocity is more than 0 (i.e. going right)
         {
-            if (transform.position.x >= (AI.transform.position.x - (AI.transform.lossyScale.x / 8)))    //check if ball current position is >= to ai's position while taking into account the width of the paddle
+            if (transform.position.x >= (PlayerTwo.transform.position.x - (PlayerTwo.transform.lossyScale.x / 8)))    //check if ball current position is >= to ai's position while taking into account the width of the paddle
             {
                 BotWall = false;    //reset wall checks
                 TopWall = false;
 
-                if (Vector2.Distance(transform.position, AI.transform.position) < AI.transform.lossyScale.y / 2) //check if distance between ball and paddle is less than the total height of the paddle (ensure paddle is in contact)
+                if (Vector2.Distance(transform.position, PlayerTwo.transform.position) < PlayerTwo.transform.lossyScale.y / 2) //check if distance between ball and paddle is less than the total height of the paddle (ensure paddle is in contact)
                 {
-                    HorizontalReflection(AI);   //call Horizontal Reflection with reference to ai
+                    HorizontalReflection(PlayerTwo);   //call Horizontal Reflection with reference to ai
                 }
                 else
                 {
-                    if (transform.position.x > AI.transform.position.x + 0.25f)
+                    if (transform.position.x > PlayerTwo.transform.position.x + 0.25f)
                     {
                         ResetGame(0);
                         Invoke("InitialMovement", 3.0f);
@@ -220,7 +216,7 @@ public class sc_BallLogic : MonoBehaviour
                 break;
         }
 
-        if (CollisionObject == Player)
+        if (CollisionObject == PlayerOne)
         {
             if (BallHit != null)
             {
@@ -268,8 +264,8 @@ public class sc_BallLogic : MonoBehaviour
     //Debugging
     private void DisplayDistance()
     {
-        Debug.DrawLine(transform.position, Player.transform.position, Color.red);
-        Debug.DrawLine(transform.position, AI.transform.position, Color.red);
+        Debug.DrawLine(transform.position, PlayerOne.transform.position, Color.red);
+        Debug.DrawLine(transform.position, PlayerTwo.transform.position, Color.red);
         Debug.DrawRay(transform.position, new Vector3(Velocity.x * 10, Velocity.y * 10, 0), Color.blue);
     }
 }

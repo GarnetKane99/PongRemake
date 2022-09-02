@@ -2,10 +2,11 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class sc_SinglePlayerController : MonoBehaviour
+public class sc_TwoPlayerController : MonoBehaviour
 {
     [SerializeField] private sc_GameManager ManagerInstance = sc_GameManager.instance;
-    public float speed;
+    [SerializeField] private float speed;
+    [SerializeField] private int playerID;
 
     private void Awake()
     {
@@ -36,7 +37,7 @@ public class sc_SinglePlayerController : MonoBehaviour
 
         Vector3 target = transform.position + (new Vector3(moveVector.x, moveVector.y, 0f)); //Sets the new target direction by updating transform target 
         //4.25 //- 4.25
-        target.y = Mathf.Clamp(target.y, -ManagerInstance.WorldHeight + (transform.lossyScale.y/2) + 0.25f, ManagerInstance.WorldHeight - (transform.lossyScale.y/2) - 0.25f);
+        target.y = Mathf.Clamp(target.y, -ManagerInstance.WorldHeight + (transform.lossyScale.y / 2) + 0.25f, ManagerInstance.WorldHeight - (transform.lossyScale.y / 2) - 0.25f);
         transform.position = Vector3.MoveTowards(transform.position, target, speed * Time.deltaTime); //Updates actual transform
     }
 
@@ -47,7 +48,28 @@ public class sc_SinglePlayerController : MonoBehaviour
 
     private float GetYInput()
     {
-        float moveY = Input.GetAxisRaw("Vertical"); //in-built unity method, will return 0, -1 or 1 (nothing in between for snappy movement)
+        //float moveY = Input.GetAxisRaw("Vertical"); //in-built unity method, will return 0, -1 or 1 (nothing in between for snappy movement)
+        float moveY = default;
+        if (playerID == 0)
+        {
+            if (Input.GetKey(KeyCode.W))
+            {
+                moveY = 1;
+            }else if (Input.GetKey(KeyCode.S))
+            {
+                moveY = -1;
+            }
+        }else if(playerID == 1)
+        {
+            if (Input.GetKey(KeyCode.UpArrow))
+            {
+                moveY = 1;
+            }
+            else if (Input.GetKey(KeyCode.DownArrow))
+            {
+                moveY = -1;
+            }
+        }
 
         return moveY;
     }

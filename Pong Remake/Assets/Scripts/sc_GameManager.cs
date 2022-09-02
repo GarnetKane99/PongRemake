@@ -6,7 +6,7 @@ public class sc_GameManager : MonoBehaviour
 {
     public static sc_GameManager instance { get; private set; }
 
-    private Camera mainCamera;
+    public Camera mainCamera;
     public float WorldHeight => mainCamera.orthographicSize;
     public float WorldWidth => WorldHeight * ((float)Screen.width / (float)Screen.height);
 
@@ -22,20 +22,36 @@ public class sc_GameManager : MonoBehaviour
     public int P1Score = default, P2Score = default;
     public int P1ID = default, P2ID = default;
 
-    public bool SinglePlayerMode = false;
+    //public bool SinglePlayerMode = false;
 
     public delegate void ScoreIncreaser(int playerID);
     public static event ScoreIncreaser ScoreToIncrease;
 
     public sc_ScoreController ScoreHandler;
-    public sc_AIController AIController;
+    public sc_BallLogic BallLogic;
+    //public sc_AIController AIController;
     public sc_SinglePlayerController SinglePlayerController;
 
     // Start is called before the first frame update
     void Awake()
     {
         mainCamera = Camera.main;
-        SinglePlayerMode = true;
+        if (instance == null)
+        {
+            instance = this;
+            DontDestroyOnLoad(this);
+            DontDestroyOnLoad(mainCamera);
+        }
+        else
+        {
+            Destroy(this);
+        }
+    }
+
+    public void GameStart()
+    {
+        BallLogic.GetComponent<SpriteRenderer>().color = new Color(1, 1, 1, 1);
+        BallLogic.Invoke("InitialMovement", 3.0f);
     }
 
     public void SetupDelegate()

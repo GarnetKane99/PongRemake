@@ -30,7 +30,6 @@ public class sc_AIController : MonoBehaviour
     {
         if (!ManagerInstance.GameReset)
         {
-
             CheckPosition();
             transform.Translate(velocity * PaddleSpeed * Time.deltaTime);
         }

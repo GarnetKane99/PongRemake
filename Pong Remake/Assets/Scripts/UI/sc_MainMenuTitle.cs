@@ -1,5 +1,5 @@
 using System.Collections;
-using System.Collections.Generic;
+using UnityEngine.SceneManagement;
 using UnityEngine;
 using TMPro;
 using UnityEngine.UI;
@@ -11,6 +11,8 @@ public class sc_MainMenuTitle : MonoBehaviour
 
     private Vector3 StartPos;
 
+    [SerializeField] private string SinglePlayerName, TwoPlayerName;
+
     private void Awake()
     {
         StartPos = Camera.main.WorldToScreenPoint(new Vector3(0, -6, 0));
@@ -18,7 +20,8 @@ public class sc_MainMenuTitle : MonoBehaviour
         TwoPlayer.gameObject.SetActive(false);
         Quit.gameObject.SetActive(false);
 
-        //SinglePlayer.onClick.AddListener
+        SinglePlayer.onClick.AddListener(SinglePlayerGame);
+        TwoPlayer.onClick.AddListener(TwoPlayerGame);
     }
 
     private void Start()
@@ -57,11 +60,20 @@ public class sc_MainMenuTitle : MonoBehaviour
 
     private void SinglePlayerGame()
     {
-
+        Invoke("SinglePlayerScene", 1.0f);
+    }
+    private void SinglePlayerScene()
+    {
+        SceneManager.LoadScene(SinglePlayerName);
     }
 
     private void TwoPlayerGame()
     {
+        Invoke("TwoPlayerScene", 1.0f);
+    }
 
+    private void TwoPlayerScene()
+    {
+        SceneManager.LoadScene(TwoPlayerName);
     }
 }
