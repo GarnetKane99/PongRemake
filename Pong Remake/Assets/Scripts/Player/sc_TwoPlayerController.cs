@@ -5,7 +5,7 @@ using UnityEngine;
 public class sc_TwoPlayerController : MonoBehaviour
 {
     [SerializeField] private sc_GameManager ManagerInstance = sc_GameManager.instance;
-    [SerializeField] private float speed;
+    public float speed;
     [SerializeField] private int playerID;
 
     private void Awake()

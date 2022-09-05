@@ -5,7 +5,7 @@ using TMPro;
 
 public class sc_ScoreController : MonoBehaviour
 {
-    [SerializeField] private TextMeshProUGUI Player1, Player2;
+    public TextMeshProUGUI Player1, Player2;
     private int PlayerID;
 
     [SerializeField] sc_GameManager ManagerInstance = sc_GameManager.instance;
@@ -17,6 +17,7 @@ public class sc_ScoreController : MonoBehaviour
         {
             ManagerInstance = FindObjectOfType<sc_GameManager>();
         }
+
         InitializeScores();
     }
 

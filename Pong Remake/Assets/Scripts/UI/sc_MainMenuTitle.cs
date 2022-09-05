@@ -8,7 +8,7 @@ public class sc_MainMenuTitle : MonoBehaviour
 {
     [SerializeField] private TextMeshProUGUI TitleText;
     [SerializeField] private Button SinglePlayer, TwoPlayer, Quit;
-
+    [SerializeField] private sc_GameManager ManagerInstance = sc_GameManager.instance;
     private Vector3 StartPos;
 
     [SerializeField] private string SinglePlayerName, TwoPlayerName;
@@ -19,6 +19,15 @@ public class sc_MainMenuTitle : MonoBehaviour
         SinglePlayer.gameObject.SetActive(false);
         TwoPlayer.gameObject.SetActive(false);
         Quit.gameObject.SetActive(false);
+
+        if(ManagerInstance == null)
+        {
+            ManagerInstance = FindObjectOfType<sc_GameManager>();
+        }
+
+        ManagerInstance.GameReset = false;
+        ManagerInstance.P1Score = 0;
+        ManagerInstance.P2Score = 0;
 
         SinglePlayer.onClick.AddListener(SinglePlayerGame);
         TwoPlayer.onClick.AddListener(TwoPlayerGame);

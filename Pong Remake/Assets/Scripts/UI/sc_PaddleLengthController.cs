@@ -4,6 +4,8 @@ using TMPro;
 
 public class sc_PaddleLengthController : MonoBehaviour
 {
+    [SerializeField] private bool SinglePlayer;
+    [SerializeField] private bool PlayerLeft;
     [SerializeField] private Slider PaddleLengthSlider;
     [SerializeField] private TextMeshProUGUI SliderText;
     [SerializeField] private sc_GameManager ManagerInstance = sc_GameManager.instance;
@@ -17,7 +19,21 @@ public class sc_PaddleLengthController : MonoBehaviour
 
         PaddleLengthSlider.onValueChanged.AddListener((y) =>
         {
-            ManagerInstance.SinglePlayerController.transform.localScale = new Vector3(ManagerInstance.SinglePlayerController.transform.localScale.x, (Mathf.Round(y * 10.0f) * 0.1f), ManagerInstance.SinglePlayerController.transform.localScale.z);
+            if (!SinglePlayer)
+            {
+                if (PlayerLeft)
+                {
+                    ManagerInstance.PlayerLeft.transform.localScale = new Vector3(ManagerInstance.PlayerLeft.transform.localScale.x, (Mathf.Round(y * 10.0f) * 0.1f), ManagerInstance.PlayerLeft.transform.localScale.z);
+                }
+                else
+                {
+                    ManagerInstance.PlayerRight.transform.localScale = new Vector3(ManagerInstance.PlayerRight.transform.localScale.x, (Mathf.Round(y * 10.0f) * 0.1f), ManagerInstance.PlayerRight.transform.localScale.z);
+                }
+            }
+            else
+            {
+                ManagerInstance.SinglePlayerController.transform.localScale = new Vector3(ManagerInstance.SinglePlayerController.transform.localScale.x, (Mathf.Round(y * 10.0f) * 0.1f), ManagerInstance.SinglePlayerController.transform.localScale.z);
+            }
             SliderText.text = (Mathf.Round(y * 10.0f) * 0.1f).ToString();
         });
     }

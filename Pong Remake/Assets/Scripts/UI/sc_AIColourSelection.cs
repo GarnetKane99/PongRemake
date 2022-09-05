@@ -3,10 +3,8 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class sc_ColourSelection : MonoBehaviour
+public class sc_AIColourSelection : MonoBehaviour
 {
-    [SerializeField] private bool SinglePlayer;
-    [SerializeField] private bool PlayerLeft;
     [SerializeField] private List<Button> ColourButtons;
     [SerializeField] private sc_GameManager ManagerInstance = sc_GameManager.instance;
 
@@ -30,21 +28,7 @@ public class sc_ColourSelection : MonoBehaviour
     {
         if (IMG != null)
         {
-            if (!SinglePlayer)
-            {
-                if (PlayerLeft)
-                {
-                    ManagerInstance.PlayerLeft.GetComponent<SpriteRenderer>().color = IMG.color;
-                }
-                else
-                {
-                    ManagerInstance.PlayerRight.GetComponent<SpriteRenderer>().color = IMG.color;
-                }
-            }
-            else
-            {
-                ManagerInstance.SinglePlayerController.GetComponent<SpriteRenderer>().color = IMG.color;
-            }
+            ManagerInstance.AIController.GetComponent<SpriteRenderer>().color = IMG.color;
         }
         else
         {

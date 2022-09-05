@@ -118,7 +118,7 @@ public class sc_BallLogic : MonoBehaviour
                     if (transform.position.x < PlayerOne.transform.position.x - 0.25f)
                     {
                         ResetGame(1);
-                        Invoke("InitialMovement", 3.0f);
+                        //Invoke("InitialMovement", 3.0f);
                     }
                 }
             }
@@ -139,7 +139,7 @@ public class sc_BallLogic : MonoBehaviour
                     if (transform.position.x > PlayerTwo.transform.position.x + 0.25f)
                     {
                         ResetGame(0);
-                        Invoke("InitialMovement", 3.0f);
+                        //Invoke("InitialMovement", 3.0f);
                     }
                 }
             }

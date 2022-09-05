@@ -4,6 +4,8 @@ using TMPro;
 
 public class sc_PaddleSpeedController : MonoBehaviour
 {
+    [SerializeField] private bool SinglePlayer;
+    [SerializeField] private bool PlayerLeft;
     [SerializeField] private Slider PaddleSpeedSlider;
     [SerializeField] private TextMeshProUGUI SliderText;
     [SerializeField] private sc_GameManager ManagerInstance = sc_GameManager.instance;
@@ -17,7 +19,22 @@ public class sc_PaddleSpeedController : MonoBehaviour
 
         PaddleSpeedSlider.onValueChanged.AddListener((x) =>
         {
-            ManagerInstance.SinglePlayerController.speed = (Mathf.Round(x * 10.0f) * 0.1f);
+            if (!SinglePlayer)
+            {
+                if (PlayerLeft)
+                {
+                    ManagerInstance.PlayerLeft.speed = (Mathf.Round(x * 10.0f) * 0.1f);
+                }
+                else
+                {
+                    ManagerInstance.PlayerRight.speed = (Mathf.Round(x * 10.0f) * 0.1f);
+                }
+            }
+            else
+            {
+                ManagerInstance.SinglePlayerController.speed = (Mathf.Round(x * 10.0f) * 0.1f);
+            }
+
             SliderText.text = (Mathf.Round(x * 10.0f) * 0.1f).ToString();
         });
     }

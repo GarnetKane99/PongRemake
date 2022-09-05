@@ -29,8 +29,13 @@ public class sc_GameManager : MonoBehaviour
 
     public sc_ScoreController ScoreHandler;
     public sc_BallLogic BallLogic;
-    //public sc_AIController AIController;
+    public sc_AIController AIController;
     public sc_SinglePlayerController SinglePlayerController;
+    public sc_CountdownDisplay DisplayCountdown;
+    public sc_PostGameDisplay PGDisplay;
+    [SerializeField] private int MaxScoreNeeded;
+    public sc_TwoPlayerController PlayerLeft;
+    public sc_TwoPlayerController PlayerRight;
 
     // Start is called before the first frame update
     void Awake()
@@ -50,7 +55,14 @@ public class sc_GameManager : MonoBehaviour
 
     public void GameStart()
     {
+        P1Score = default;
+        P2Score = default;
+
+        ScoreHandler.Player1.text = P1Score.ToString();
+        ScoreHandler.Player2.text = P2Score.ToString();
+
         BallLogic.GetComponent<SpriteRenderer>().color = new Color(1, 1, 1, 1);
+        DisplayCountdown.StartCoroutine(DisplayCountdown.DisplayCountdown(3));
         BallLogic.Invoke("InitialMovement", 3.0f);
     }
 
@@ -71,5 +83,27 @@ public class sc_GameManager : MonoBehaviour
             P2Score++;
         }
         ScoreHandler.UpdateScore(PlayerID);
+
+        if (P1Score >= MaxScoreNeeded)
+        {
+            PGDisplay.DisplayWinner(P1ID);
+        }
+        else if (P2Score >= MaxScoreNeeded)
+        {
+            PGDisplay.DisplayWinner(P2ID);
+        }
+        else
+        {
+            BallLogic.Invoke("InitialMovement", 3.0f);
+        }
+    }
+
+    public void LeaveGame()
+    {
+        sc_BallLogic.ScoreIncrease -= IncreaseScore;
+        if(AIController != null)
+        {
+            AIController.RemoveDelegate();
+        }
     }
 }
