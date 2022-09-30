@@ -155,10 +155,10 @@ public class sc_AIController : MonoBehaviour
 
     void CheckPosition()
     {
-        if (transform.position.y > ManagerInstance.WorldHeight + (transform.lossyScale.y / 2) - 0.25f)
+        if (transform.position.y > ManagerInstance.WorldHeight - (transform.lossyScale.y / 2) - 0.25f)
         {
             velocity.y = 0f;
-            transform.position = new Vector3(transform.position.x, ManagerInstance.WorldHeight + (transform.lossyScale.y / 2) - 0.25f);
+            transform.position = new Vector3(transform.position.x, ManagerInstance.WorldHeight - (transform.lossyScale.y / 2) - 0.25f);
         }
         else if (transform.position.y < -ManagerInstance.WorldHeight + (transform.lossyScale.y / 2) + 0.25f)
         {
